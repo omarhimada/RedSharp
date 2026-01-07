@@ -2,6 +2,28 @@
 ## Loop & Complexity Analyzers for C# (Roslyn)
 A growing collection of **free Roslyn analyzers and code fixes for Visual Studio (Windows, not VS Code)**, focused on surfacing potential inefficiencies and encouraging clearer, idiomatic C#.
 
+### Parallel download & deserialization analyzer
+The analyzer should replace this:
+```
+foreach (string? key in filteredKeys) {
+  byte[]? data = await DownloadBytesAsync(key, ct);
+  T? value = JsonSerializer.Deserialize<T>(data, jsonOptions);
+    if (value != null) {
+      results.Add(value);
+    }
+}
+```
+With this:
+```
+// Concurrent download and deserialize all matching objects
+T?[] values = await Task.WhenAll(
+    filteredKeys.Select(async key =>
+        JsonSerializer.Deserialize<T>(
+            await DownloadBytesAsync(key, ct),
+              _jsonOptions()))
+);
+```
+
 ### Current Goals
 - Detect nested `foreach` loops as possible performance hotspots
 - Provide conservative **code-fix suggestions** (e.g., `SelectMany`/`AddRange`) when semantics can be preserved
