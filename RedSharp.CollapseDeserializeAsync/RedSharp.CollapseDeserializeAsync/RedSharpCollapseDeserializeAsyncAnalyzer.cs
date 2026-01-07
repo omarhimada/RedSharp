@@ -5,43 +5,30 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace RedSharp {
-    /// <summary>
-    /// Analyzes C# code to identify nested foreach loops that may indicate potential performance issues due to O(n*m)
-    /// complexity.
-    /// </summary>
-    /// <remarks>This analyzer reports an informational diagnostic when a foreach statement directly contains
-    /// another foreach statement within its body. The diagnostic is intended as a heuristic to help developers identify
-    /// code patterns that could lead to inefficient iteration, such as nested enumeration over large collections. Not
-    /// all nested foreach loops are problematic; the analyzer is designed to prompt review and consideration of
-    /// alternative approaches, such as using sets, dictionaries, or LINQ methods like SelectMany where
-    /// appropriate.</remarks>
+namespace RedSharp.CollapseDeserializeAsync {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public sealed class RedSharpAnalyzer : DiagnosticAnalyzer {
-        public const string DiagnosticId = @"RedSharp";
+    public class RedSharpCollapseDeserializeAsyncAnalyzer : DiagnosticAnalyzer {
+        public const string DiagnosticId = "RedSharp";
 
         private const string Deserialize = "Deserialize";
         private const string JsonSerializer = "JsonSerializer";
         private const string SystemTextJson = "System.Text.Json";
         private const string Category = "Naming";
 
-        private static readonly DiagnosticDescriptor Rule = new(
-            id: DiagnosticId,
-            title: "Nested foreach loop detected",
-            messageFormat: "Nested foreach loops can indicate O(n*m) behavior; consider restructuring or using a set/dictionary / SelectMany when appropriate",
-            category: "Performance",
-            defaultSeverity: DiagnosticSeverity.Info,
-            isEnabledByDefault: true,
-            description: "Warns when a foreach contains another foreach. This is a heuristic; not always a problem."
-        );
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        // You can change these strings in the Resources.resx file. If you do not want your analyzer to be localize-able, you can use regular strings for Title and MessageFormat.
+        // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Localizing%20Analyzers.md for more on localization
+        private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
+        private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources));
+        private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager, typeof(Resources));
+
+        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 
         public override void Initialize(AnalysisContext context) {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
-
-            context.RegisterSyntaxNodeAction(AnalyzeForeach, SyntaxKind.ForEachStatement);
 
             context.RegisterSyntaxNodeAction(Analyze, SyntaxKind.ForEachStatement);
             context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
@@ -51,43 +38,6 @@ namespace RedSharp {
             // You don't need a symbol analyzer for this rule.
             // Keep this empty (or remove RegisterSymbolAction + this method entirely)
             // so it doesn't produce unrelated diagnostics.
-        }
-
-        /// <summary>
-        /// Analyzes a foreach statement to identify nested foreach loops and reports a diagnostic if a nested foreach
-        /// is found.
-        /// </summary>
-        /// <remarks>This method is intended to be used as part of a Roslyn analyzer to detect nested
-        /// foreach statements, which may indicate code that could be refactored for clarity or performance. The
-        /// diagnostic is reported on the inner foreach statement to assist with code fixes.</remarks>
-        /// <param name="context">The analysis context containing the syntax node to analyze and semantic information for the current
-        /// analysis.</param>
-        private static void AnalyzeForeach(SyntaxNodeAnalysisContext context) {
-            ForEachStatementSyntax outer = (ForEachStatementSyntax)context.Node;
-
-            // Only analyze blocks (keeps the heuristic simple)
-            if (!(outer.Statement is BlockSyntax outerBlock)) {
-                return;
-            }
-
-            // Find any nested foreach inside the outer foreach body
-            ForEachStatementSyntax nested = outerBlock.DescendantNodes().OfType<ForEachStatementSyntax>().FirstOrDefault();
-            if (nested is null) {
-                return;
-            }
-
-            // Basic sanity: both expressions should be "foreachable" (IEnumerable / pattern-based foreach)
-            // If Roslyn can get a type, check it's not null. This doesn't prove complexity—just avoids nonsense.
-            ITypeSymbol outerType = context.SemanticModel.GetTypeInfo(outer.Expression).Type;
-            ITypeSymbol innerType = context.SemanticModel.GetTypeInfo(nested.Expression).Type;
-
-            if (outerType is null || innerType is null) {
-                return;
-            }
-
-            // Report on the inner foreach (so codefix can target it)
-            Diagnostic diagnostic = Diagnostic.Create(Rule, nested.ForEachKeyword.GetLocation());
-            context.ReportDiagnostic(diagnostic);
         }
 
         private static void Analyze(SyntaxNodeAnalysisContext context) {
@@ -228,10 +178,9 @@ namespace RedSharp {
             return false;
         }
 
-        private static bool
-            ReferencesIdentifier(ExpressionSyntax expr, string ident) => expr.DescendantNodesAndSelf()
-                .OfType<IdentifierNameSyntax>()
-                .Any(id => id.Identifier.ValueText == ident);
+        private static bool ReferencesIdentifier(ExpressionSyntax expr, string ident) => expr.DescendantNodesAndSelf()
+                       .OfType<IdentifierNameSyntax>()
+                       .Any(id => id.Identifier.ValueText == ident);
 
         private static bool IsNotNullCheckOf(ExpressionSyntax condition, string varName) {
             // Support:
@@ -254,20 +203,16 @@ namespace RedSharp {
                     return false;
                 }
 
-                PatternSyntax pattern = isPattern.Pattern;
+                PatternSyntax p = isPattern.Pattern;
 
                 // "is not null"
-                // 2a) "is not null"
-                // Pattern: UnaryPatternSyntax(Not) -> ConstantPatternSyntax(null)
-                if (pattern is UnaryPatternSyntax up &&
-                    up.Pattern is ConstantPatternSyntax cp &&
-                    cp.Expression is LiteralExpressionSyntax lit &&
-                    lit.IsKind(SyntaxKind.NullLiteralExpression)) {
-                    return true;
-                }
+                var node = root.FindNode(diagnostic.Location.SourceSpan);
+                var forEach = node.FirstAncestorOrSelf<ForEachStatementSyntax>();
+                if (forEach is null)
+                    return;
 
                 // "is { }"
-                if (pattern is RecursivePatternSyntax rp &&
+                if (p is RecursivePatternSyntax rp &&
                 rp.PropertyPatternClause is { } pp &&
                 pp.Subpatterns.Count == 0) {
                     return true;
@@ -277,10 +222,10 @@ namespace RedSharp {
             return false;
         }
 
-        private static bool IsIdentifier(ExpressionSyntax expr, string varName)
+        private static bool IsIdentifier(ExpressionSyntax expr, string varName) 
             => expr is IdentifierNameSyntax id && id.Identifier.ValueText == varName;
 
-        private static bool IsNullLiteral(ExpressionSyntax expr)
+        private static bool IsNullLiteral(ExpressionSyntax expr) 
             => expr is LiteralExpressionSyntax lit && lit.IsKind(SyntaxKind.NullLiteralExpression);
 
         private static bool IsAddOfVariable(StatementSyntax stmt, string varName) {
@@ -333,8 +278,8 @@ namespace RedSharp {
                 return false;
             }
 
-            IMethodSymbol symbol =
-                context.SemanticModel.GetSymbolInfo(inv,
+            IMethodSymbol symbol = 
+                context.SemanticModel.GetSymbolInfo(inv, 
                 context.CancellationToken).Symbol as IMethodSymbol;
             if (symbol is null) {
                 return false;

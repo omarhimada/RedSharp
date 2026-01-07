@@ -1,35 +1,31 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.VisualBasic.Testing;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace RedSharp.Test
-{
-    public static partial class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
+namespace RedSharp.CollapseDeserializeAsync.Test {
+    public static partial class VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix>
         where TAnalyzer : DiagnosticAnalyzer, new()
-        where TCodeFix : CodeFixProvider, new()
-    {
+        where TCodeFix : CodeFixProvider, new() {
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.Diagnostic()"/>
         public static DiagnosticResult Diagnostic()
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, MSTestVerifier>.Diagnostic();
+            => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, MSTestVerifier>.Diagnostic();
 
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.Diagnostic(string)"/>
         public static DiagnosticResult Diagnostic(string diagnosticId)
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, MSTestVerifier>.Diagnostic(diagnosticId);
+            => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, MSTestVerifier>.Diagnostic(diagnosticId);
 
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.Diagnostic(DiagnosticDescriptor)"/>
         public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
-            => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, MSTestVerifier>.Diagnostic(descriptor);
+            => VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix, MSTestVerifier>.Diagnostic(descriptor);
 
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyAnalyzerAsync(string, DiagnosticResult[])"/>
-        public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
-        {
-            Test test = new Test
-            {
+        public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected) {
+            Test test = new Test {
                 TestCode = source,
             };
 
@@ -46,10 +42,8 @@ namespace RedSharp.Test
             => await VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
 
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, DiagnosticResult[], string)"/>
-        public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
-        {
-            Test test = new Test
-            {
+        public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource) {
+            Test test = new Test {
                 TestCode = source,
                 FixedCode = fixedSource,
             };

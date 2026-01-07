@@ -23,7 +23,7 @@ namespace RedSharp.Test
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult[], string)"/>
         public static async Task VerifyRefactoringAsync(string source, DiagnosticResult[] expected, string fixedSource)
         {
-            var test = new Test
+            Test test = new Test
             {
                 TestCode = source,
                 FixedCode = fixedSource,

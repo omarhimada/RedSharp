@@ -1,7 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="RedSharp.CodeFixes/RedSharp.CodeFixes.csproj" />
   <Project Path="RedSharp.Package/RedSharp.Package.csproj" />
-  <Project Path="RedSharp.Test/RedSharp.Test.csproj" />
   <Project Path="RedSharp.Vsix/RedSharp.Vsix.csproj" />
   <Project Path="RedSharp/RedSharp.csproj" />
 </Solution>

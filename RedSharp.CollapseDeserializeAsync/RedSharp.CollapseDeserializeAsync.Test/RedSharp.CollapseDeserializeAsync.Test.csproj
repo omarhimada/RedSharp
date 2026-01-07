@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RedSharp.CodeFixes\RedSharp.CodeFixes.csproj" />
-    <ProjectReference Include="..\RedSharp\RedSharp.csproj" />
+    <ProjectReference Include="..\RedSharp.CollapseDeserializeAsync.CodeFixes\RedSharp.CollapseDeserializeAsync.CodeFixes.csproj" />
+    <ProjectReference Include="..\RedSharp.CollapseDeserializeAsync\RedSharp.CollapseDeserializeAsync.csproj" />
   </ItemGroup>
 
 </Project>

@@ -4,8 +4,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8</TargetFramework>
-    <RootNamespace>RedSharp.Vsix</RootNamespace>
-    <AssemblyName>RedSharp.Vsix</AssemblyName>
+    <RootNamespace>RedSharp.CollapseDeserializeAsync.Vsix</RootNamespace>
+    <AssemblyName>RedSharp.CollapseDeserializeAsync.Vsix</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -31,11 +31,6 @@
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
 
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
-
-  <ItemGroup>
-    <ProjectReference Include="..\RedSharp.CodeFixes\RedSharp.CodeFixes.csproj" />
-    <ProjectReference Include="..\RedSharp\RedSharp.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <!-- https://github.com/dotnet/sdk/issues/433 -->

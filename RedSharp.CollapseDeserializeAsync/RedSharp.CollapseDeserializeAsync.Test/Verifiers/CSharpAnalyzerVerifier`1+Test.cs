@@ -1,19 +1,14 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
-namespace RedSharp.Test
-{
-    public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
-        where TCodeRefactoring : CodeRefactoringProvider, new()
-    {
-        public class Test : CSharpCodeRefactoringTest<TCodeRefactoring, MSTestVerifier>
-        {
-            public Test()
-            {
-                SolutionTransforms.Add((solution, projectId) =>
-                {
+namespace RedSharp.CollapseDeserializeAsync.Test {
+    public static partial class CSharpAnalyzerVerifier<TAnalyzer>
+        where TAnalyzer : DiagnosticAnalyzer, new() {
+        public class Test : CSharpAnalyzerTest<TAnalyzer, MSTestVerifier> {
+            public Test() {
+                SolutionTransforms.Add((solution, projectId) => {
                     CompilationOptions compilationOptions = solution.GetProject(projectId).CompilationOptions;
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(
                         compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));

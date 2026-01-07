@@ -31,8 +31,9 @@ namespace RedSharp {
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context) {
             SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            if (root is null)
+            if (root is null) {
                 return;
+            }
 
             Diagnostic diagnostic = context.Diagnostics.First();
             SyntaxToken token = root.FindToken(diagnostic.Location.SourceSpan.Start);
@@ -43,18 +44,21 @@ namespace RedSharp {
                 .OfType<ForEachStatementSyntax>()
                 .FirstOrDefault();
 
-            if (nestedForeach is null)
+            if (nestedForeach is null) {
                 return;
+            }
 
             // We need the outer foreach too
             ForEachStatementSyntax outerForeach = nestedForeach.Ancestors().OfType<ForEachStatementSyntax>().FirstOrDefault();
-            if (outerForeach is null)
+            if (outerForeach is null) {
                 return;
+            }
 
             // Only offer the fix when we match a very specific safe-ish shape.
             // outer: foreach (var a in OUTER) { foreach (var b in INNER) { result.Add(EXPR); } }
-            if (!TryMatchAddPattern(outerForeach, nestedForeach, out IdentifierNameSyntax resultIdentifier, out ExpressionSyntax addArgumentExpr))
+            if (!TryMatchAddPattern(outerForeach, nestedForeach, out IdentifierNameSyntax resultIdentifier, out ExpressionSyntax addArgumentExpr)) {
                 return;
+            }
 
             context.RegisterCodeFix(
                 CodeAction.Create(
@@ -73,37 +77,46 @@ namespace RedSharp {
             addArgumentExpr = null;
 
             // Require outer body to be a block
-            if (!(outer.Statement is BlockSyntax outerBlock))
+            if (!(outer.Statement is BlockSyntax outerBlock)) {
                 return false;
+            }
 
             // Require inner body to be a block with exactly one statement: result.Add(<expr>);
-            if (!(inner.Statement is BlockSyntax innerBlock))
+            if (!(inner.Statement is BlockSyntax innerBlock)) {
                 return false;
+            }
 
-            if (innerBlock.Statements.Count != 1)
+            if (innerBlock.Statements.Count != 1) {
                 return false;
+            }
 
             ExpressionStatementSyntax statement0 = innerBlock.Statements[0] as ExpressionStatementSyntax;
-            if (statement0 == null)
+            if (statement0 == null) {
                 return false;
+            }
 
             ExpressionStatementSyntax exprStmt = statement0;
 
-            if (!(exprStmt.Expression is InvocationExpressionSyntax invocation))
+            if (!(exprStmt.Expression is InvocationExpressionSyntax invocation)) {
                 return false;
+            }
 
-            if (!(invocation.Expression is MemberAccessExpressionSyntax memberAccess))
+            if (!(invocation.Expression is MemberAccessExpressionSyntax memberAccess)) {
                 return false;
+            }
 
-            if (memberAccess.Name.Identifier.Text != "Add")
+            if (memberAccess.Name.Identifier.Text != "Add") {
                 return false;
+            }
 
-            if (!(memberAccess.Expression is IdentifierNameSyntax resultId))
+            if (!(memberAccess.Expression is IdentifierNameSyntax resultId)) {
                 return false;
+            }
 
             SeparatedSyntaxList<ArgumentSyntax> args = invocation.ArgumentList.Arguments;
-            if (args.Count != 1)
+            if (args.Count != 1) {
                 return false;
+            }
 
             ExpressionSyntax argExpr = args[0].Expression;
 
@@ -114,13 +127,15 @@ namespace RedSharp {
             bool containsOuter = argExpr.DescendantTokens().Any(t => t.ValueText == outerVar);
             bool containsInner = argExpr.DescendantTokens().Any(t => t.ValueText == innerVar);
 
-            if (!containsOuter || !containsInner)
+            if (!containsOuter || !containsInner) {
                 return false;
+            }
 
             // Also require that the inner foreach is directly contained in the outer foreach body
             // (prevents weird nesting with other statements)
-            if (!outerBlock.Statements.OfType<ForEachStatementSyntax>().Contains(inner))
+            if (!outerBlock.Statements.OfType<ForEachStatementSyntax>().Contains(inner)) {
                 return false;
+            }
 
             resultIdentifier = resultId;
             addArgumentExpr = argExpr;
@@ -150,8 +165,9 @@ namespace RedSharp {
             ExpressionSyntax addArgumentExpr,
             CancellationToken cancellationToken) {
             SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root is null)
+            if (root is null) {
                 return document;
+            }
 
             string a = outer.Identifier.ValueText;
             string b = inner.Identifier.ValueText;

@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>RedSharp</PackageId>
+    <PackageId>RedSharp.CollapseDeserializeAsync</PackageId>
     <PackageVersion>1.0.0.0</PackageVersion>
     <Authors>adosi</Authors>
     <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
@@ -16,10 +16,10 @@
     <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
     <RepositoryUrl>http://REPOSITORY_URL_HERE_OR_DELETE_THIS_LINE</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>RedSharp</Description>
+    <Description>RedSharp.CollapseDeserializeAsync</Description>
     <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
-    <PackageTags>RedSharp, analyzers</PackageTags>
+    <PackageTags>RedSharp.CollapseDeserializeAsync, analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoPackageAnalysis>true</NoPackageAnalysis>
 
@@ -27,8 +27,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RedSharp.CodeFixes\RedSharp.CodeFixes.csproj" />
-    <ProjectReference Include="..\RedSharp\RedSharp.csproj" />
+    <ProjectReference Include="..\RedSharp.CollapseDeserializeAsync.CodeFixes\RedSharp.CollapseDeserializeAsync.CodeFixes.csproj" />
+    <ProjectReference Include="..\RedSharp.CollapseDeserializeAsync\RedSharp.CollapseDeserializeAsync.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,8 +37,8 @@
 
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)\RedSharp.dll" PackagePath="analyzers/dotnet/cs" />
-      <TfmSpecificPackageFile Include="$(OutputPath)\RedSharp.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\RedSharp.CollapseDeserializeAsync.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\RedSharp.CollapseDeserializeAsync.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
     </ItemGroup>
   </Target>
 
