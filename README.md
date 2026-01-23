@@ -48,4 +48,3 @@ Ideas, PRs, and new analyzer suggestions are welcome. This project aims to grow 
 
 ---
 
-**Made with 💙 for C# developers.**
